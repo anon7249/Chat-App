@@ -1,10 +1,8 @@
 # Chat App
 
-A full-stack real-time chat application. Users can register, log in, search for other users, start direct conversations, and exchange messages that arrive instantly over WebSockets.
+A full stack real-time chat application. Users can register, log in, search for other users, start direct conversations, and exchange messages that arrive instantly over WebSockets.
 
 Built as a learning project to practise a FastAPI + React stack end to end: authentication, relational data modelling, a layered backend, and real-time messaging.
-
-<!-- Add a screenshot here: ![Chat screenshot](docs/screenshot.png) -->
 
 ## Features
 
@@ -29,44 +27,6 @@ Built as a learning project to practise a FastAPI + React stack end to end: auth
 - Axios, Tailwind CSS
 - `jwt-decode`
 
-## Project structure
-
-```
-Chat-App/
-├── backend/
-│   ├── main.py                  # app setup, CORS, router registration
-│   ├── database.py              # engine, session, get_db dependency
-│   ├── ws_manager.py            # WebSocket connection manager
-│   ├── auth/security.py         # JWT, password hashing, auth dependencies
-│   ├── models/                  # SQLAlchemy models
-│   │   ├── users.py
-│   │   ├── conversations.py
-│   │   ├── conversation_members.py
-│   │   └── messages.py
-│   ├── schemas/                 # Pydantic request/response schemas
-│   ├── routers/                 # HTTP and WebSocket routes
-│   │   ├── auth_route.py
-│   │   ├── conversation_route.py
-│   │   └── ws_route.py
-│   ├── services/                # business logic
-│   │   └── conversation_services.py
-│   └── requirements.txt
-└── frontend/
-    └── src/
-        ├── api/api.js           # axios instance and API calls
-        └── components/          # Login, Register, ProtectedRoute,
-                                 # userHomePage, ConversationList,
-                                 # ChatPage, SearchUser
-```
-
-## Data model
-
-- `users`: id, username, email, password_hash, created_at
-- `conversations`: id, type (`direct` / `group`), name, created_at
-- `conversation_members`: conversation_id + user_id (composite key), joined_at
-- `messages`: id, conversation_id, sender_id, message, sent_at
-
-A join table links users to conversations, so the schema already supports group chats, though only direct chats are implemented in the API.
 
 ## API overview
 
@@ -81,72 +41,6 @@ A join table links users to conversations, so the schema already supports group 
 | GET | `/conversations/{id}/messages` | Message history (members only) |
 | WS | `/ws?token=` | Real-time message push |
 
-Interactive docs are available at `http://127.0.0.1:8000/docs` while the backend is running.
-
-## Getting started
-
-### Prerequisites
-
-- Python 3.11+
-- Node.js 18+
-- PostgreSQL
-
-### 1. Clone the repo
-
-```bash
-git clone https://github.com/<your-username>/Chat-App.git
-cd Chat-App
-```
-
-### 2. Backend
-
-```bash
-cd backend
-python -m venv venv
-# Windows (PowerShell)
-venv\Scripts\Activate.ps1
-# macOS / Linux
-source venv/bin/activate
-
-pip install -r requirements.txt
-```
-
-Create a PostgreSQL database (for example `chat_app`), then create `backend/.env`:
-
-```
-DATABASE_URL=postgresql://postgres:your-password@localhost:5432/chat_app
-SECRET_KEY=your-long-random-secret
-```
-
-Generate a secret key with:
-
-```bash
-python -c "import secrets; print(secrets.token_hex(32))"
-```
-
-Create the database tables from the models in `backend/models/`, then start the server:
-
-```bash
-uvicorn main:app --reload
-```
-
-The backend runs at `http://127.0.0.1:8000`. Run uvicorn from inside `backend/`, since imports are relative to that folder.
-
-### 3. Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-The frontend runs at `http://localhost:5173`, which is the origin allowed by the backend's CORS settings. It expects the API at `http://127.0.0.1:8000` (set in `frontend/src/api/api.js`).
-
-### 4. Try it
-
-1. Register two users (use a normal window and a private/incognito window).
-2. Log in as each one.
-3. Search for the other user, send a message, and watch it appear instantly on the other side.
 
 ## Security notes
 
