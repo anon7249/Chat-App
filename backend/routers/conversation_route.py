@@ -64,3 +64,20 @@ def get_messages(
     db: Session = Depends(get_db),
 ):
     return conversation_services.get_message(db, conversation_id, current_user.id)
+  
+  
+
+@router.post("/{conversation_id}/summary")
+def summarise_conversation(
+  conversation_id:int,
+  current_user: Annotated[Users, Depends(get_current_active_user)],
+  db: Session = Depends(get_db),
+):
+  return conversation_services.summarise_conversation(
+    db, conversation_id, current_user.id
+  )
+
+
+
+
+

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 import { getMessages, sendMessage, getConversations } from "../api/api"
+import Summarise from "../components/Summarise"
+
 
 function ChatPage({ conversation, incoming, onSent, onCreated }) {
   const [messages, setMessages] = useState([])
@@ -52,6 +54,7 @@ function ChatPage({ conversation, incoming, onSent, onCreated }) {
 
   return (
     <div className="flex flex-col h-full">
+      <Summarise conversationId={conversation.id} />
       <div className="flex-1 overflow-y-auto">
         {messages.map((m) => (
           <div key={m.id}>
@@ -62,6 +65,7 @@ function ChatPage({ conversation, incoming, onSent, onCreated }) {
       </div>
 
       <form onSubmit={handleSend} className="flex gap-2 pt-3">
+
         <input
           className="flex-1 border border-gray-300 p-2 rounded"
           value={text}

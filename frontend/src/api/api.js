@@ -30,3 +30,5 @@ export const getMessages = (conversationId) =>
 export const sendMessage = (recipientId, message) => API.post("/conversations/messages", { recipient_id: recipientId, message })
 
 export const searchUsers = (q) => API.get("/conversations/users/search", { params: { q } })
+
+export const summariseConversation = (conversationId) => API.post(`/conversations/${conversationId}/summary`)

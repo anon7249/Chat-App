@@ -10,7 +10,6 @@ function Register() {
     password: "",
     confirmPassword: ""
   })
-
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -22,7 +21,6 @@ function Register() {
     e.preventDefault()
 
     if (formData.password !== formData.confirmPassword) {
-      alert("password not found")
       return
     }
     try {
@@ -34,6 +32,8 @@ function Register() {
       alert("signup failed ")
     }
   }
+
+  const mismatch = formData.confirmPassword && formData.password !== formData.confirmPassword
 
 
   return (
@@ -120,6 +120,10 @@ function Register() {
             required
             className="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
+          {/* {error && <p className="text-sm text-red-500 p-1 font-semibold">{error}</p>} */}
+          {mismatch && <p className="text-sm text-red-500 font-semibold">Passwords do not match</p>}
+
+
         </div>
 
         {/* Button */}
