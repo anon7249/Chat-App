@@ -3,6 +3,7 @@ import { jwtDecode } from "jwt-decode"
 import ConversationList from "./ConversationList"
 import ChatPage from "./ChatPage"
 import UserSearch from "./SearchUser"
+import { useNavigate } from "react-router-dom"
 
 function UserHomePage() {
   const token = localStorage.getItem("token")
@@ -10,6 +11,7 @@ function UserHomePage() {
   const [selected, setSelected] = useState(null)
   const [refreshKey, setRefreshKey] = useState(0)
   const [incoming, setIncoming] = useState(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
     const ws = new WebSocket(`ws://127.0.0.1:8000/ws?token=${token}`)
@@ -24,10 +26,23 @@ function UserHomePage() {
 
     return () => ws.close()
   }, [token])
+  const handleLogout = () => {
+    localStorage.removeItem("token")
+    navigate("/")
+  }
+
 
   return (
     <div className="h-screen flex flex-col">
-      <h1 className="p-3 border-b">Hi {username} welcome to the homepage</h1>
+      <div className="flex items-center justify-between border-b p-3">
+        <h1 className="text-lg font-semibold">Hi {username}, welcome to the homepage</h1>
+        <button
+          onClick={handleLogout}
+          className="rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600"
+        >
+          Log out
+        </button>
+      </div>
       <div className="flex flex-1 overflow-hidden">
         <aside className="w-1/3 border-r overflow-y-auto">
           <UserSearch

@@ -3,6 +3,12 @@ import { getMessages, sendMessage, getConversations } from "../api/api"
 import Summarise from "../components/Summarise"
 
 
+const formatTime = (sentAt) => {
+  if (!sentAt) return ""
+  const iso = /Z|[+-]\d{2}:\d{2}$/.test(sentAt) ? sentAt : `${sentAt}Z`
+  return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+}
+
 function ChatPage({ conversation, incoming, onSent, onCreated }) {
   const [messages, setMessages] = useState([])
   const [text, setText] = useState("")
@@ -51,21 +57,33 @@ function ChatPage({ conversation, incoming, onSent, onCreated }) {
       setSending(false)
     }
   }
-
   return (
     <div className="flex flex-col h-full">
       <Summarise conversationId={conversation.id} />
+
       <div className="flex-1 overflow-y-auto">
-        {messages.map((m) => (
-          <div key={m.id}>
-            <strong>{m.sender_username}</strong>
-            <p>{m.message}</p>
-          </div>
-        ))}
+        {messages.map((m) => {
+          const mine = m.sender_username !== conversation.other_username
+          return (
+            <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+              <div
+                className={`m-1 max-w-[70%] rounded-lg px-3 py-2 ${mine ? "bg-blue-500 text-white" : "bg-gray-200"
+                  }`}
+              >
+                {!mine && <strong className="text-sm">{m.sender_username}</strong>}
+                <p>{m.message}</p>
+                <span
+                  className={`block text-right text-xs mt-1 ${mine ? "text-blue-100" : "text-gray-500"}`}
+                >
+                  {formatTime(m.sent_at)}
+                </span>
+              </div>
+            </div>
+          )
+        })}
       </div>
 
       <form onSubmit={handleSend} className="flex gap-2 pt-3">
-
         <input
           className="flex-1 border border-gray-300 p-2 rounded"
           value={text}
@@ -79,5 +97,4 @@ function ChatPage({ conversation, incoming, onSent, onCreated }) {
     </div>
   )
 }
-
 export default ChatPage
