@@ -13,6 +13,7 @@ Built as a learning project to practise a FastAPI + React stack end to end: auth
 - **Inbox**: lists your conversations with the other person's name and the last message, newest first
 - **Real-time messages**: new messages are pushed to the recipient over a WebSocket, with no reload or polling
 - **Access control**: only members of a conversation can read or send messages in it
+- - **AI to summarise**: Can summarise conversations using Claude AI 
 
 ## Tech stack
 
@@ -60,10 +61,7 @@ Built as a learning project to practise a FastAPI + React stack end to end: auth
 
 ## Roadmap
 
-- Left/right message alignment and auto-scroll
-- Logout and token-expiry handling
 - Group conversations
 - Unique constraint to prevent duplicate direct conversations for the same pair of users
-- Pagination for long message histories
+
 - Docker and docker-compose setup
-- Tests
