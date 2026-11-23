@@ -4,6 +4,7 @@ import ConversationList from "./ConversationList"
 import ChatPage from "./ChatPage"
 import UserSearch from "./SearchUser"
 import { useNavigate } from "react-router-dom"
+import { getConversations } from "../api/api"
 
 function UserHomePage() {
   const token = localStorage.getItem("token")
@@ -46,13 +47,13 @@ function UserHomePage() {
       <div className="flex flex-1 overflow-hidden">
         <aside className="w-1/3 border-r overflow-y-auto">
           <UserSearch
-            onPick={(u) =>
-              setSelected({
-                id: null,
-                other_user_id: u.id,
-                other_username: u.username,
-              })
-            }
+            onPick={async (u) => {
+              const res = await getConversations()
+              const existing = res.data.find((c) => c.other_user_id === u.id)
+              setSelected(
+                existing ?? { id: null, other_user_id: u.id, other_username: u.username }
+              )
+            }}
           />
           <ConversationList
             selectedId={selected?.id}
