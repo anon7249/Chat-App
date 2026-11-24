@@ -80,30 +80,39 @@ def list_conversations(db: Session, current_user_id: int) -> list[dict]:
     ]
     results = []
     for convo_id in convo_ids:
-        other = (
-            db.query(Users)
-            .join(ConversationMembers, Users.id == ConversationMembers.user_id)
-            .filter(
-                ConversationMembers.conversation_id == convo_id,
-                Users.id != current_user_id,
+        convo = db.get(Conversations, convo_id)
+
+        other = None
+        if convo.type == "direct":
+            other = (
+                db.query(Users)
+                .join(ConversationMembers, Users.id == ConversationMembers.user_id)
+                .filter(
+                    ConversationMembers.conversation_id == convo_id,
+                    Users.id != current_user_id,
+                )
+                .first()
             )
-            .first()
-        )
+
         last = (
             db.query(Message)
             .filter(Message.conversation_id == convo_id)
             .order_by(Message.sent_at.desc())
             .first()
         )
+
         results.append(
             {
                 "id": convo_id,
+                "type": convo.type,
+                "name": convo.name,
                 "other_username": other.username if other else None,
                 "last_message": last.message if last else None,
                 "last_message_at": last.sent_at if last else None,
                 "other_user_id": other.id if other else None,
             }
         )
+
     results.sort(key=lambda r: r["last_message_at"] or datetime.min, reverse=True)
     return results
 
@@ -118,31 +127,6 @@ def ensure_member(db: Session, conversation_id: int, user_id: int) -> None:
         raise HTTPException(
             status_code=403, detail="you are not a member of this conversation"
         )
-
-
-def get_message(db: Session, conversation_id: int, current_user_id: int) -> list[dict]:
-    ensure_member(db, conversation_id, current_user_id)
-
-    rows = (
-        db.query(Message, Users.username)
-        .join(Users, Users.id == Message.sender_id)
-        .filter(Message.conversation_id == conversation_id)
-        .order_by(Message.sent_at.asc())
-        .all()
-    )
-
-    return [
-        {
-            "id": msg.id,
-            "conversation_id": msg.conversation_id,
-            "sender_id": msg.sender_id,
-            "sender_username": username,
-            "message": msg.message,
-            "sent_at": msg.sent_at,
-        }
-        for msg, username in rows
-    ]
-
 
 def summarise_conversation(
     db: Session, conversation_id: int, current_user_id: int
@@ -178,3 +162,76 @@ def summarise_conversation(
     if not summary:
       raise HTTPException(status_code=502, detail="The AI returned no summary")
     return {"summary": summary}
+  
+  
+  
+  
+  
+def get_message(db: Session, conversation_id: int, current_user_id: int) -> list[dict]:
+    ensure_member(db, conversation_id, current_user_id)
+
+    rows = (
+        db.query(Message, Users.username)
+        .join(Users, Users.id == Message.sender_id)
+        .filter(Message.conversation_id == conversation_id)
+        .order_by(Message.sent_at.asc())
+        .all()
+    )
+
+    return [
+        {
+            "id": msg.id,
+            "conversation_id": msg.conversation_id,
+            "sender_id": msg.sender_id,
+            "sender_username": username,
+            "message": msg.message,
+            "sent_at": msg.sent_at,
+        }
+        for msg, username in rows
+    ]
+
+
+def create_group(db: Session, name: str, member_ids: list[int], current_user_id: int)->Conversations:
+  
+  members = set(member_ids) - {current_user_id}
+  if not name.strip():
+    raise HTTPException(status_code=400, detail = "group requires a name")
+  if not members:
+    raise HTTPException(status_code = 400, detail = "add another member")
+  
+  group = Conversations(type="group", name = name.strip())
+  db.add(group)
+  db.flush()
+  db.add_all(
+    ConversationMembers(conversation_id = group.id, user_id= uid)
+    for uid in members | {current_user_id}
+  )
+  
+  db.commit()
+  db.refresh(group)
+  return group
+
+
+
+def send_group_message(db: Session, conversation_id: int, text:str, current_user_id: int) -> Message:
+    
+    convo = db.get(Conversations, conversation_id)
+    if convo is None or convo.type != "group":
+        raise HTTPException(status_code = 404, detail = "Group not found")
+    
+    ensure_member(db, conversation_id, current_user_id)
+    msg = Message(
+        conversation_id = conversation_id, 
+        sender_id = current_user_id, 
+        message=text,
+    )
+    db.add(msg)
+    db.commit()
+    db.refresh(msg)
+    return msg
+
+"""
+TODO
+build route to send message 
+
+"""

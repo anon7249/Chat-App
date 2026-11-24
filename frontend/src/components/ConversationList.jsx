@@ -21,7 +21,7 @@ function ConversationList({ selectedId, onSelect, refreshKey }) {
     <ul>
       {conversations.map((c) => (
         <li key={c.id} onClick={() => onSelect(c)} className={`cursor-pointer p-3 border-b ${c.id === selectedId ? "bg-blue-100" : "hover:bg-gray-100"}`}>
-          <strong>{c.other_username}</strong>
+          <strong>{c.type === "group" ? c.name : c.other_username}</strong>
           <p>{c.last_message ?? "No messages yet"}</p>
         </li>
       ))}

@@ -11,6 +11,8 @@ from schemas.users import UserSearchOut
 
 from schemas.messages import MessageCreate, MessageOut
 from schemas.conversations import ConversationOut
+from schemas.group_create import GroupCreate, GroupMessageCreate
+from models.conversation_members import ConversationMembers
 
 from ws_manager import manager
 
@@ -24,6 +26,18 @@ def search_user(
     db: Session = Depends(get_db),
 ):
     return conversation_services.search_users(db, q, current_user.id)
+  
+
+  
+@router.post("/group")
+def create_group(
+  body: GroupCreate,
+  current_user: Annotated[Users, Depends(get_current_active_user)],
+  db: Session = Depends(get_db),
+):
+  group = conversation_services.create_group(db, body.group_name, body.members_id, current_user.id)
+  
+  return {"id": group.id, "name": group.name, "type": group.type}
 
 
 @router.post("/messages", response_model=MessageOut, status_code=201)
@@ -47,6 +61,40 @@ async def send_message(
         },
     )
     return msg
+  
+  
+@router.post("/{conversation_id}/messages")
+async def send_group_message(
+  conversation_id: int, 
+  body: GroupMessageCreate, 
+  current_user: Annotated[Users, Depends(get_current_active_user)],
+  db: Session = Depends(get_db),
+  
+):
+  msg = conversation_services.send_group_message(
+    db, conversation_id, body.message, current_user.id
+  )
+  
+  payload = {
+    "type": "new_message",
+    "id": msg.id,
+    "conversation_id": msg.conversation_id,
+    "sender_id": msg.sender_id,
+    "sender_username": current_user.username,
+    "message": msg.message,
+    "sent_at": msg.sent_at.isoformat(),
+  }
+  
+  member_ids = [
+    r.user_id
+    for r in db.query(ConversationMembers.user_id).filter(
+    ConversationMembers.conversation_id == conversation_id,
+    ConversationMembers.user_id != current_user.id,
+    )
+    ]
+  for uid in member_ids:
+    await manager.send_to_user(uid, payload)
+    return payload
 
 
 @router.get("", response_model=list[ConversationOut])
